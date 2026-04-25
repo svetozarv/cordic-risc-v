@@ -6,14 +6,14 @@
     .data
     .align 4
 atan_LUT:                     # Represented in BAM, 1° ≈ 11930464.711
-    .word 536870912           # arctan(2^-0), ok. 45 stopni
-    .word 316933405           # arctan(2^-1), ok. 26.56 stopni
-    .word 167458907           # arctan(2^-2), ok. 14.03 stopni
-    .word 85004756            # arctan(2^-3), ok. 7.12 stopni
-    .word 42667331            # arctan(2^-4), ok. 3.57 stopni
-    .word 21354465            # arctan(2^-5), ok. 1.79 stopni
-    .word 10679838            # arctan(2^-6), ok. 0.896 stopni
-    .word 5340245             # arctan(2^-7), ok. 0.448 stopni
+    .word 536870912           # arctan(2^-0), approx. 45°
+    .word 316933405           # arctan(2^-1), approx. 26.56°
+    .word 167458907           # arctan(2^-2), approx. 14.03°
+    .word 85004756            # arctan(2^-3), approx. 7.12°
+    .word 42667331            # arctan(2^-4), approx. 3.57°
+    .word 21354465            # arctan(2^-5), approx. 1.79°
+    .word 10679838            # arctan(2^-6), approx. 0.896°
+    .word 5340245             # arctan(2^-7), approx. 0.448°
     .word 2670163             # arctan(2^-8), ...
     .word 1335086             # arctan(2^-9)
     .word 667544              # arctan(2^-10)

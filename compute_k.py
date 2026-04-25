@@ -10,10 +10,14 @@ def compute_arctan_table():
 
 def from_BAM(angle_BAM):
     angle_deg = angle_BAM * 180 / 2**31
-    print(f"{angle_BAM} (BAM) = {angle_deg:.3f} degrees or {math.radians(angle_deg):.3f} radians.")
+    print(f"{angle_BAM} (BAM) = {angle_deg:.3f}° or {math.radians(angle_deg):.3f} radians.")
+
+def to_BAM(angle_deg):
+    return angle_deg * 2**31 / 180
 
 def to_q2_29(num=1):
-    print(f"{num} shifted by 29: {num << 29}")
+    # print(f"{num} shifted by 29: {num << 29}")
+    return int(num * (1 << 29))
 
 def from_q2_29(num=1):
     wagi = [2**i for i in range(-29, 2, 1)]
@@ -31,11 +35,21 @@ def print_artan_table():
     for i, value in enumerate(arctan_table):
         print(f"arctan(2^-{i}) = {value}")
 
+def check_sine_cosine(degrees: int):
+    sin = math.sin(math.radians(degrees))
+    cos = math.cos(math.radians(degrees))
+    print(f"cos {degrees}° \t{cos:.3f}\t{to_q2_29(cos)}")
+    print(f"sin {degrees}° \t{sin:.3f}\t{to_q2_29(sin)}")
+    print("-------------------------------------")
+
 if __name__ == "__main__":
-    print()
-    print(f"cosine of 464945629 (Q2.29) is {from_q2_29(464945629)}")
-    print(f"sine of 268436490 (Q2.29) is {from_q2_29(268436490)}")
-    print("--------------------------------------------")
-    print(f"cosine of 379626512 (Q2.29) is {from_q2_29(379626512)}")
-    print(f"sine of 379626526 (Q2.29) is {from_q2_29(379626526)}")
-    print()
+    check_sine_cosine(45)
+    check_sine_cosine(60)
+    check_sine_cosine(90)
+    check_sine_cosine(99)
+    check_sine_cosine(99.7)
+    check_sine_cosine(100)
+    check_sine_cosine(180)
+    check_sine_cosine(270)
+    check_sine_cosine(360)
+    check_sine_cosine(361)
