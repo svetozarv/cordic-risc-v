@@ -11,10 +11,10 @@ atan_LUT:                     # Represented in BAM, 1° ≈ 11930464.711
     .word 167458907           # arctan(2^-2), ok. 14.03 stopni
     .word 85004756            # arctan(2^-3), ok. 7.12 stopni
     .word 42667331            # arctan(2^-4), ok. 3.57 stopni
-    .word 21354465            # arctan(2^-5), ...
-    .word 10679838            # arctan(2^-6)
-    .word 5340245             # arctan(2^-7)
-    .word 2670163             # arctan(2^-8)
+    .word 21354465            # arctan(2^-5), ok. 1.79 stopni
+    .word 10679838            # arctan(2^-6), ok. 0.896 stopni
+    .word 5340245             # arctan(2^-7), ok. 0.448 stopni
+    .word 2670163             # arctan(2^-8), ...
     .word 1335086             # arctan(2^-9)
     .word 667544              # arctan(2^-10)
     .word 333772              # arctan(2^-11)
@@ -37,10 +37,10 @@ atan_LUT:                     # Represented in BAM, 1° ≈ 11930464.711
     .word 2                   # arctan(2^-28)
     .word 1                   # arctan(2^-29)
     # 30 iterations, no sense in more because our precision is limited
-prompt:	            .asciz "Enter degrees:\n"
-result_sine_Q229:	.asciz "sin:\n"
-result_cosine_Q229:	.asciz "cos:\n"
-accumulator_BAM:	.asciz "Z = :\n"
+prompt:	            .asciz "\nEnter degrees:"
+result_sine_Q229:	.asciz "\nsin: "
+result_cosine_Q229:	.asciz "\ncos: "
+accumulator_BAM:	.asciz "\nZ = "
 
     .text
     .global main
@@ -59,67 +59,62 @@ main:
     li s3, 30           # loop counter
     la s4, atan_LUT
 
-mainloop:
-    beqz s3, end
     beqz s2, handle_0
 
-    # save sign of Z in a2
-    andi a2, s2, 0x80000000
+mainloop:
+    beqz s3, end
 
-    # save current x and y
-    mv a0, s0
+    li a7, 0x80000000
+    and a2, s2, a7	# save sign of Z in a2
+    mv a0, s0           # save current x and y
     mv a1, s1
 
     # shift them
     mv a3, s3		# i
     neg a3, a3		# -i
     addi a3, a3, 30	# 30 - i
-    sra a0, a0, a3	# x_i >> i
-    sra a1, a1, a3	# y_i >> i
+    sra s0, a1, a3	# y_i >> i
+    sra s1, a0, a3	# x_i >> i
 
-    # multiply the result by the sing of Z
-    neg a0, a0
-    beqz a2, compas_positive
-    neg a0, a0
-    neg a1, a1
+    lw a4, (s4)
+
+    neg s0, s0
+    beqz a2, compas_positive    # multiply the result by the sign of Z
+    neg s0, s0
+    neg s1, s1
+    neg a4, a4
 compas_positive:
-    # add and save everything to the x and y
-    addi s0, s0, a0
-    addi s1, s1, a1
+    add s0, s0, a0  # add and save everything to the x and y
+    add s1, s1, a1
 
-    # Z_new = Z_old - atan_LUT[i]
-    lw a4, (t4)
-    sub s2, s2, a4
+    sub s2, s2, a4  # Z_new = Z_old - atan_LUT[i]
 
-    # update pointers
-    addi s4, s4, 4	# or 1 ????
+    addi s4, s4, 4	# update pointers
     addi s3, s3, -1
     b mainloop
 handle_0:
-    mv s0, 1
-    mv s1, 0
-
+    li s0, 1
+    li s1, 0
 end:
     li a7, CON_PUTSTR
     la a0, result_cosine_Q229
     ecall
     li a7, CON_PUTINT
-    li a0, s0
+    mv a0, s0
     ecall
-
 
     li a7, CON_PUTSTR
     la a0, result_sine_Q229
     ecall
     li a7, CON_PUTINT
-    li a0, s1
+    mv a0, s1
     ecall
 
     li a7, CON_PUTSTR
     la a0, accumulator_BAM
     ecall
     li a7, CON_PUTINT
-    li a0, s2
+    mv a0, s2
     ecall
 
     li a7, SYS_EXIT0
