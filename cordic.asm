@@ -1,7 +1,8 @@
-.eqv CON_PUTINT, 1
-.eqv CON_PUTSTR, 4
-.eqv CON_GETINT, 5
-.eqv SYS_EXIT0, 10
+.eqv CON_PUTINT,  1
+.eqv CON_PUTSTR,  4
+.eqv CON_PUTCHAR, 11
+.eqv CON_GETINT,  5
+.eqv SYS_EXIT0,   10
 
     .data
     .align 4
@@ -99,6 +100,14 @@ end:
     li a7, CON_PUTSTR
     la a0, result_cosine_Q229
     ecall
+    
+   bgtz s0, cos_is_positive
+   li a7, CON_PUTCHAR
+   li a0, '-'
+   ecall
+   neg s0, s0
+cos_is_positive:
+    
     li a7, CON_PUTINT
     mv a0, s0
     ecall
