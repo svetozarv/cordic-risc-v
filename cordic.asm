@@ -43,6 +43,7 @@ result_sine:	    .asciz "\nsin: "
 result_cosine:	    .asciz "\ncos: "
 accumulator_BAM:	.asciz "\nZ = "
 in_Q229:	        .asciz "\nin_Q229: "
+human_readable:	    .asciz "\nHuman readable: "
 
     .text
     .global main
@@ -98,16 +99,50 @@ handle_0:
     li s0, 1
     li s1, 0
 end:
+    # ============ print results in Q2.29 (Fixed point format) ============
+    li a7, CON_PUTSTR
+    la a0, in_Q229
+    ecall
+
+    li a7, CON_PUTSTR
+    la a0, result_cosine
+    ecall
+    li a7, CON_PUTINT
+    mv a0, s0
+    ecall
+
+    li a7, CON_PUTSTR
+    la a0, result_sine
+    ecall
+    li a7, CON_PUTINT
+    mv a0, s1
+    ecall
+
+    li a7, CON_PUTSTR
+    la a0, accumulator_BAM
+    ecall
+    li a7, CON_PUTINT
+    mv a0, s2
+    ecall
+
+    # ============ print results in human readable format ============
+    li a7, CON_PUTCHAR
+    li a0, '\n'
+    ecall
+    li a7, CON_PUTSTR
+    la a0, human_readable
+    ecall
+
     li a7, CON_PUTSTR
     la a0, result_cosine
     ecall
 
-   bgez s0, cos_is_positive
-   # print minus and negate so latter computing is easier
-   li a7, CON_PUTCHAR
-   li a0, '-'
-   ecall
-   neg s0, s0
+    bgez s0, cos_is_positive
+    # print minus and negate so latter computing is easier
+    li a7, CON_PUTCHAR
+    li a0, '-'
+    ecall
+    neg s0, s0
 cos_is_positive:
     # ============ print cos ============
     # first integer part
@@ -140,27 +175,6 @@ loop_print_cos:
     and t0, t3, t1 	# clear the integer part in t3 (prepare for the next iteration)
     b loop_print_cos
 end_of_print_cos:
-    # ----- print cos in Q2.29
-    li a7, CON_PUTSTR
-    la a0, in_Q229
-    ecall
-    li a7, CON_PUTINT
-    mv a0, s0
-    ecall
-
-    li a7, CON_PUTSTR
-    la a0, result_sine
-    ecall
-    li a7, CON_PUTINT
-    mv a0, s1
-    ecall
-
-    li a7, CON_PUTSTR
-    la a0, accumulator_BAM
-    ecall
-    li a7, CON_PUTINT
-    mv a0, s2
-    ecall
 
     li a7, SYS_EXIT0
     ecall
