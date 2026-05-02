@@ -195,11 +195,8 @@ sin_is_positive:
     ecall
 
     mv t0, s1
-    li t1, 0x1FFFFFFF
-    li t2, 10
     and t0, t0, t1
 loop_print_sin:
-    beqz t0, end_of_print_sin
     mul t3, t0, t2
     mv t6, t3
     mulhu t4, t0, t2
@@ -210,6 +207,8 @@ loop_print_sin:
     li a7, CON_PUTINT
     mv a0, t5
     ecall
+
+    beqz t0, end_of_print_sin
 
     and t0, t6, t1
     b loop_print_sin
