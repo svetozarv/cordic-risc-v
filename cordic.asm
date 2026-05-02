@@ -63,12 +63,25 @@ main:
     la s4, atan_LUT
 
     beqz s2, handle_0
-
+    
+    # normalize angle
+    li a7, 1181116035	#  99 in BAM
+    li a6, -1181116035	# -99 in BAM
+    slt a5, s2, a7
+    sgt a4, s2, a6
+    and a5, a5, a4
+    bnez a5, mainloop
+    
+    neg s2, s2
+    li a4, -2147483596	# MAX_32BIT - 2147483700
+    add s2, s2, a4 	# pi in BAM
+    li s5, 1
+    
 mainloop:
-    beqz s3, end
+    beqz s3, end_cordic
 
     li a7, 0x80000000
-    and a2, s2, a7	    # save sign of Z in a2
+    and a2, s2, a7	# save sign of Z in a2
     mv a0, s0           # save current x and y
     mv a1, s1
 
@@ -98,7 +111,10 @@ positive_rotation:
 handle_0:
     li s0, 1
     li s1, 0
-end:
+end_cordic:
+    beqz s5, dont_normalize
+    neg s0, s0
+dont_normalize:
     # ============ print results in Q2.29 (Fixed point format) ============
     li a7, CON_PUTSTR
     la a0, in_Q229
