@@ -39,9 +39,10 @@ atan_LUT:                     # Represented in BAM, 1° ≈ 11930464.711
     .word 1                   # arctan(2^-29)
     # 30 iterations, no sense in more because our precision is limited
 prompt:	            .asciz "\nEnter degrees:"
-result_sine_Q229:	.asciz "\nsin: "
-result_cosine_Q229:	.asciz "\ncos: "
+result_sine:	    .asciz "\nsin: "
+result_cosine:	    .asciz "\ncos: "
 accumulator_BAM:	.asciz "\nZ = "
+in_Q229:	        .asciz "\nin_Q229: "
 
     .text
     .global main
@@ -98,22 +99,57 @@ handle_0:
     li s1, 0
 end:
     li a7, CON_PUTSTR
-    la a0, result_cosine_Q229
+    la a0, result_cosine
     ecall
-    
-   bgtz s0, cos_is_positive
+
+   bgez s0, cos_is_positive
+   # print minus and negate so latter computing is easier
    li a7, CON_PUTCHAR
    li a0, '-'
    ecall
    neg s0, s0
 cos_is_positive:
-    
+    # ============ print cos ============
+    # first integer part
+    li a7, CON_PUTINT
+    mv a0, s0
+    srai a0, a0, 29
+    ecall
+
+    # dot
+    li a7, CON_PUTCHAR
+    li a0, '.'
+    ecall
+
+    mv t0, s0
+    li t1, 0x1FFFFFFF	# bitmask for 29 first bits
+    li t2, 10
+    and t0, t0, t1	# get the 29 bits
+loop_print_cos:
+    beqz t0, end_of_print_cos
+    mul t3, t0, t2 	# multiply by ten (could be implemented with bitshift, lea or eqv.)
+    mulhu t4, t0, t2
+    slli t4, t4, 3
+    srli t3, t3, 29
+    or t5, t3, t4	# combine result of multiplication from t4 and t3
+
+    li a7, CON_PUTINT
+    mv a0, t5
+    ecall
+
+    and t0, t3, t1 	# clear the integer part in t3 (prepare for the next iteration)
+    b loop_print_cos
+end_of_print_cos:
+    # ----- print cos in Q2.29
+    li a7, CON_PUTSTR
+    la a0, in_Q229
+    ecall
     li a7, CON_PUTINT
     mv a0, s0
     ecall
 
     li a7, CON_PUTSTR
-    la a0, result_sine_Q229
+    la a0, result_sine
     ecall
     li a7, CON_PUTINT
     mv a0, s1
