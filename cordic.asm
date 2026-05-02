@@ -82,11 +82,11 @@ mainloop:
     lw a4, (s4)
 
     neg s0, s0
-    beqz a2, compas_positive    # multiply the result by the sign of Z
+    beqz a2, positive_rotation    # multiply the result by the sign of Z
     neg s0, s0
     neg s1, s1
     neg a4, a4
-compas_positive:
+positive_rotation:
     add s0, s0, a0      # add and save everything to the x and y
     add s1, s1, a1
 
@@ -160,6 +160,7 @@ cos_is_positive:
 loop_print_cos:
     beqz t0, end_of_print_cos
     mul t3, t0, t2 	    # multiply by ten (could be implemented with bitshift, lea or eqv.)
+    mv t6, t3
     mulhu t4, t0, t2
     slli t4, t4, 3
     srli t3, t3, 29
@@ -169,9 +170,50 @@ loop_print_cos:
     mv a0, t5
     ecall
 
-    and t0, t3, t1 	    # clear the integer part in t3 (prepare for the next iteration)
+    and t0, t6, t1 	    # clear the integer part in t3 (prepare for the next iteration)
     b loop_print_cos
 end_of_print_cos:
+
+    # ========== print sin ==========
+    li a7, CON_PUTSTR
+    la a0, result_sine
+    ecall
+
+    bgez s1, sin_is_positive
+    li a7, CON_PUTCHAR
+    li a0, '-'
+    ecall
+    neg s1, s1
+sin_is_positive:
+    li a7, CON_PUTINT
+    mv a0, s1
+    srai a0, a0, 29
+    ecall
+
+    li a7, CON_PUTCHAR
+    li a0, '.'
+    ecall
+
+    mv t0, s1
+    li t1, 0x1FFFFFFF
+    li t2, 10
+    and t0, t0, t1
+loop_print_sin:
+    beqz t0, end_of_print_sin
+    mul t3, t0, t2
+    mv t6, t3
+    mulhu t4, t0, t2
+    slli t4, t4, 3
+    srli t3, t3, 29
+    or t5, t3, t4
+
+    li a7, CON_PUTINT
+    mv a0, t5
+    ecall
+
+    and t0, t6, t1
+    b loop_print_sin
+end_of_print_sin:
 
     li a7, SYS_EXIT0
     ecall
