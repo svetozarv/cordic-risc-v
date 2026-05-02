@@ -55,7 +55,7 @@ main:
     li a7, CON_GETINT
     ecall
 
-    li a7, 11930465	# = (2**31 / 180) ; conversion to BAM
+    li a7, 11930465	    # = (2**31 / 180) ; conversion to BAM
     mul s2, a0, a7      # s2 = Z (accumulator in BAM)
     li s0, 326017688    # x = K, (K = 0.6072529350 ; 1(one) in Q2.29 = 536870912)
     li s1, 0            # y = 0
@@ -68,16 +68,16 @@ mainloop:
     beqz s3, end
 
     li a7, 0x80000000
-    and a2, s2, a7	# save sign of Z in a2
+    and a2, s2, a7	    # save sign of Z in a2
     mv a0, s0           # save current x and y
     mv a1, s1
 
     # shift them
-    mv a3, s3		# i
-    neg a3, a3		# -i
-    addi a3, a3, 30	# 30 - i
-    sra s0, a1, a3	# y_i >> i
-    sra s1, a0, a3	# x_i >> i
+    mv a3, s3		    # i
+    neg a3, a3		    # -i
+    addi a3, a3, 30	    # 30 - i
+    sra s0, a1, a3	    # y_i >> i
+    sra s1, a0, a3	    # x_i >> i
 
     lw a4, (s4)
 
@@ -87,12 +87,12 @@ mainloop:
     neg s1, s1
     neg a4, a4
 compas_positive:
-    add s0, s0, a0  # add and save everything to the x and y
+    add s0, s0, a0      # add and save everything to the x and y
     add s1, s1, a1
 
-    sub s2, s2, a4  # Z_new = Z_old - atan_LUT[i]
+    sub s2, s2, a4      # Z_new = Z_old - atan_LUT[i]
 
-    addi s4, s4, 4	# update pointers
+    addi s4, s4, 4	    # update pointers
     addi s3, s3, -1
     b mainloop
 handle_0:
@@ -133,25 +133,22 @@ end:
     la a0, human_readable
     ecall
 
+    # ========== print cos ==========
     li a7, CON_PUTSTR
     la a0, result_cosine
     ecall
 
     bgez s0, cos_is_positive
-    # print minus and negate so latter computing is easier
-    li a7, CON_PUTCHAR
+    li a7, CON_PUTCHAR  # print minus and negate so latter computing is easier
     li a0, '-'
     ecall
     neg s0, s0
 cos_is_positive:
-    # ============ print cos ============
-    # first integer part
     li a7, CON_PUTINT
     mv a0, s0
-    srai a0, a0, 29
+    srai a0, a0, 29     # integer part
     ecall
 
-    # dot
     li a7, CON_PUTCHAR
     li a0, '.'
     ecall
@@ -159,20 +156,20 @@ cos_is_positive:
     mv t0, s0
     li t1, 0x1FFFFFFF	# bitmask for 29 first bits
     li t2, 10
-    and t0, t0, t1	# get the 29 bits
+    and t0, t0, t1	    # get the 29 bits
 loop_print_cos:
     beqz t0, end_of_print_cos
-    mul t3, t0, t2 	# multiply by ten (could be implemented with bitshift, lea or eqv.)
+    mul t3, t0, t2 	    # multiply by ten (could be implemented with bitshift, lea or eqv.)
     mulhu t4, t0, t2
     slli t4, t4, 3
     srli t3, t3, 29
-    or t5, t3, t4	# combine result of multiplication from t4 and t3
+    or t5, t3, t4	    # combine result of multiplication from t4 and t3
 
     li a7, CON_PUTINT
     mv a0, t5
     ecall
 
-    and t0, t3, t1 	# clear the integer part in t3 (prepare for the next iteration)
+    and t0, t3, t1 	    # clear the integer part in t3 (prepare for the next iteration)
     b loop_print_cos
 end_of_print_cos:
 
