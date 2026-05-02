@@ -1,3 +1,6 @@
+# CORDIC Algorithm (https://en.wikipedia.org/wiki/CORDIC)
+# RISC-V Assembly Implementation by Svietozar Volskyi, 04.2026
+
 .eqv CON_PUTINT,  1
 .eqv CON_PUTSTR,  4
 .eqv CON_PUTCHAR, 11
@@ -37,13 +40,14 @@ atan_LUT:                     # Represented in BAM, 1° ≈ 11930464.711
     .word 5                   # arctan(2^-27)
     .word 2                   # arctan(2^-28)
     .word 1                   # arctan(2^-29)
-    # 30 iterations, no sense in more because our precision is limited
-prompt:	            .asciz "\nEnter degrees:"
-result_sine:	    .asciz "\nsin: "
-result_cosine:	    .asciz "\ncos: "
+    # 30 iterations, next do not add precision (they add 0)
+    # achieving 5 digit precision
+prompt:			.asciz "\nEnter degrees:"
+result_sine:		.asciz "\nsin: "
+result_cosine:		.asciz "\ncos: "
 accumulator_BAM:	.asciz "\nZ = "
-in_Q229:	        .asciz "\nin_Q229: "
-human_readable:	    .asciz "\nHuman readable: "
+in_Q229:		.asciz "\nin_Q229: "
+human_readable:		.asciz "\nHuman readable: "
 
     .text
     .global main
@@ -55,15 +59,15 @@ main:
     li a7, CON_GETINT
     ecall
 
-    li a7, 11930465	    # = (2**31 / 180) ; conversion to BAM
-    mul s2, a0, a7      # s2 = Z (accumulator in BAM)
-    li s0, 326017688    # x = K, (K = 0.6072529350 ; 1(one) in Q2.29 = 536870912)
-    li s1, 0            # y = 0
-    li s3, 30           # loop counter
+    li a7, 11930465	# = (2**31 / 180) ; conversion to BAM
+    mul s2, a0, a7	# s2 = Z (accumulator in BAM)
+    li s0, 326017688	# x = K, (K = 0.6072529350 ; 1(one) in Q2.29 = 536870912)
+    li s1, 0		# y = 0
+    li s3, 30		# loop counter
     la s4, atan_LUT
 
     beqz s2, handle_0
-    
+
     # normalize angle
     li a7, 1181116035	#  99 in BAM
     li a6, -1181116035	# -99 in BAM
@@ -71,26 +75,26 @@ main:
     sgt a4, s2, a6
     and a5, a5, a4
     bnez a5, mainloop
-    
+
     neg s2, s2
     li a4, -2147483596	# MAX_32BIT - 2147483700
-    add s2, s2, a4 	# pi in BAM
+    add s2, s2, a4	# pi in BAM
     li s5, 1
-    
+
 mainloop:
     beqz s3, end_cordic
 
     li a7, 0x80000000
     and a2, s2, a7	# save sign of Z in a2
-    mv a0, s0           # save current x and y
+    mv a0, s0		# save current x and y
     mv a1, s1
 
     # shift them
-    mv a3, s3		    # i
-    neg a3, a3		    # -i
-    addi a3, a3, 30	    # 30 - i
-    sra s0, a1, a3	    # y_i >> i
-    sra s1, a0, a3	    # x_i >> i
+    mv a3, s3		# i
+    neg a3, a3		# -i
+    addi a3, a3, 30	# 30 - i
+    sra s0, a1, a3	# y_i >> i
+    sra s1, a0, a3	# x_i >> i
 
     lw a4, (s4)
 
@@ -100,12 +104,12 @@ mainloop:
     neg s1, s1
     neg a4, a4
 positive_rotation:
-    add s0, s0, a0      # add and save everything to the x and y
+    add s0, s0, a0	# add and save everything to the x and y
     add s1, s1, a1
 
-    sub s2, s2, a4      # Z_new = Z_old - atan_LUT[i]
+    sub s2, s2, a4	# Z_new = Z_old - atan_LUT[i]
 
-    addi s4, s4, 4	    # update pointers
+    addi s4, s4, 4	# update pointers
     addi s3, s3, -1
     b mainloop
 handle_0:
@@ -155,14 +159,14 @@ dont_normalize:
     ecall
 
     bgez s0, cos_is_positive
-    li a7, CON_PUTCHAR  # print minus and negate so latter computing is easier
+    li a7, CON_PUTCHAR	# print minus and negate so latter computing is easier
     li a0, '-'
     ecall
     neg s0, s0
 cos_is_positive:
     li a7, CON_PUTINT
     mv a0, s0
-    srai a0, a0, 29     # integer part
+    srai a0, a0, 29	# integer part
     ecall
 
     li a7, CON_PUTCHAR
@@ -172,21 +176,21 @@ cos_is_positive:
     mv t0, s0
     li t1, 0x1FFFFFFF	# bitmask for 29 first bits
     li t2, 10
-    and t0, t0, t1	    # get the 29 bits
+    and t0, t0, t1	# get the 29 bits
 loop_print_cos:
     beqz t0, end_of_print_cos
-    mul t3, t0, t2 	    # multiply by ten (could be implemented with bitshift, lea or eqv.)
+    mul t3, t0, t2	# multiply by ten (could be implemented with bitshift, lea or eqv.)
     mv t6, t3
     mulhu t4, t0, t2
     slli t4, t4, 3
     srli t3, t3, 29
-    or t5, t3, t4	    # combine result of multiplication from t4 and t3
+    or t5, t3, t4	# combine result of multiplication from t4 and t3
 
     li a7, CON_PUTINT
     mv a0, t5
     ecall
 
-    and t0, t6, t1 	    # clear the integer part in t3 (prepare for the next iteration)
+    and t0, t6, t1	# clear the integer part in t3 (prepare for the next iteration)
     b loop_print_cos
 end_of_print_cos:
 
@@ -229,6 +233,5 @@ loop_print_sin:
     and t0, t6, t1
     b loop_print_sin
 end_of_print_sin:
-
     li a7, SYS_EXIT0
     ecall
