@@ -20,13 +20,14 @@ def to_q2_29(num=1):
     return int(num * (1 << 29))
 
 def from_q2_29(num=1):
-    wagi = [2**i for i in range(-29, 2, 1)]
-    result = 0
-    for i, weight in enumerate(wagi):
-        if num & (1 << i):
-            result += weight
-    # result = float(num) / 536870912.0 - alternative
-    # print(f"{num} shifted back by 29: {result}")
+    # wagi = [2**i for i in range(-29, 2, 1)]
+    # result = 0
+    # for i, weight in enumerate(wagi):
+    #     if num & (1 << i):
+    #         result += weight
+    # alternative
+    result = float(num) / 536870912.0
+    print(f"{num} shifted back by 29: {result}")
     return result
 
 def print_artan_table():
@@ -38,8 +39,8 @@ def print_artan_table():
 def check_sine_cosine(degrees: int):
     sin = math.sin(math.radians(degrees))
     cos = math.cos(math.radians(degrees))
-    print(f"cos {degrees}° \t{cos:.3f}\t{to_q2_29(cos)}")
-    print(f"sin {degrees}° \t{sin:.3f}\t{to_q2_29(sin)}")
+    print(f"cos {degrees}° \t{cos}\t{to_q2_29(cos)}")
+    print(f"sin {degrees}° \t{sin}\t{to_q2_29(sin)}")
     print("-------------------------------------")
 
 if __name__ == "__main__":
@@ -53,3 +54,4 @@ if __name__ == "__main__":
     check_sine_cosine(270)
     check_sine_cosine(360)
     check_sine_cosine(361)
+    print(from_q2_29(-536872977))
