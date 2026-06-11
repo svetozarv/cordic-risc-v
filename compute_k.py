@@ -1,3 +1,5 @@
+# Helper functions to check correctness of the assembly code.
+
 import math
 
 ITERATIONS = 30
