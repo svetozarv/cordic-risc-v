@@ -113,7 +113,7 @@ positive_rotation:
     addi s3, s3, -1
     b mainloop
 handle_0:
-    li s0, 1
+    li s0, 536870913
     li s1, 0
 end_cordic:
     beqz s5, dont_normalize
